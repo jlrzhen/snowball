@@ -1,22 +1,27 @@
 #!/bin/bash
 
-function handle_interrupt() {
-    echo -e "\n\n\nexit\n"
-    exit 0
-}
-# Set up trap to call the handle_interrupt function on SIGINT
-trap 'handle_interrupt' SIGINT
-function exit_cleanup() {
-    echo -e "\r\e[Kexit\n\r\e[K"
-    exit 0
-} 
-
 # ANSI escape sequences
 SAVE_CURSOR="\033[s"
 RESTORE_CURSOR="\033[u"
 MOVE_TO_POSITION="\033[1000D\033[1C" # 1st column (so 1C)
+DISABLE_CURSOR_BLINK='\e[2 q\r'
+RESET_CURSOR_BLINK='\e[0 q'
 RESET_LINE="\r"
 NEWLINE="\n"
+
+function handle_interrupt() {
+    echo -e "\n\n\n\nexit\n"
+    echo -en $RESET_CURSOR_BLINK
+    exit 0
+}
+# Set up trap to call the handle_interrupt function on SIGINT
+trap 'handle_interrupt' SIGINT
+
+function exit_clear_screen() {
+    echo -en "\r\e[Kexit\n\r\e[K"
+    echo -en $RESET_CURSOR_BLINK
+    exit 0
+}
 
 HEADER=("$SAVE_CURSOR \
         $MOVE_TO_POSITIO \
@@ -106,7 +111,13 @@ sequences=(
   sequence_4
 )
 
-REPEATS=4;
+function main_init() {
+    clear
+    echo -e $DISABLE_CURSOR_BLINK
+}
+
+REPEATS=4
+main_init
 while :; do
     # duplicate sequences
     for ((i = 0; i < REPEATS; i++)); do
