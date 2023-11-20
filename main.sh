@@ -1,18 +1,20 @@
 #!/bin/bash
 
 function handle_interrupt() {
-    #echo -e "\r\e[Kexit\n\r\e[K"
     echo -e "\n\n\nexit\n"
     exit 0
 }
 # Set up trap to call the handle_interrupt function on SIGINT
 trap 'handle_interrupt' SIGINT
+function exit_cleanup() {
+    echo -e "\r\e[Kexit\n\r\e[K"
+    exit 0
+} 
 
 # ANSI escape sequences
 SAVE_CURSOR="\033[s"
 RESTORE_CURSOR="\033[u"
-# 1st column (so 1C)
-MOVE_TO_POSITION="\033[1000D\033[1C"
+MOVE_TO_POSITION="\033[1000D\033[1C" # 1st column (so 1C)
 RESET_LINE="\r"
 NEWLINE="\n"
 
@@ -22,6 +24,7 @@ HEADER=("$SAVE_CURSOR \
 )
 
 function clear_frame() {
+    # three empty lines
     echo -ne "${HEADER}          $NEWLINE\          $NEWLINE                ${RESTORE_CURSOR}"
 }
 
@@ -42,6 +45,7 @@ function loop_frames() {
     done
 }
 
+# Frames
 SCOOT_FRONT=(
     "$NEWLINE     (\_(\ $NEWLINE  c( ( ·.·)"
     "$NEWLINE     (\_(\ $NEWLINE   c(( ·.·)"
@@ -64,17 +68,49 @@ SIT_SIDE=(
     " /)_/)  $NEWLINE ( T.T) $NEWLINE c(\")(\")"
 )
 
+# Sequences
+sequence_1() {
+  loop_frames 4 0.3 0 2 "${SCOOT_SIDE[@]}"
+  clear_frame
+}
+
+sequence_2() {
+  loop_frames 1 1 0 1 "${CRAWL_GLANCE[@]}"
+  clear_frame
+}
+
+sequence_3() {
+  loop_frames 1 2 0 0 "${CRAWL_GLANCE[@]}"
+  clear_frame
+  loop_frames 1 2 1 1 "${SIT_SIDE[@]}"
+  for i in {1..2}; do
+      loop_frames 2 0.1 0 1 "${SIT_SIDE[@]}"
+      loop_frames 2 1 1 1 "${SIT_SIDE[@]}"
+  done
+  clear_frame
+  loop_frames 1 2 0 0 "${SCOOT_FRONT[@]}"
+  clear_frame
+}
+
+sequence_4() {
+  loop_frames 4 0.3 0 2 "${SCOOT_FRONT[@]}"
+  clear_frame
+}
+
+sequences=(
+  sequence_1
+  sequence_2
+  sequence_3
+  sequence_4
+)
+
+REPEATS=4;
 while :; do
-    loop_frames 4 0.3 0 2 "${SCOOT_SIDE[@]}"
-    clear_frame
-    loop_frames 1 1 0 1 "${CRAWL_GLANCE[@]}"
-    loop_frames 1 2 0 0 "${CRAWL_GLANCE[@]}"
-    clear_frame
-    loop_frames 1 2 1 1 "${SIT_SIDE[@]}"
-    loop_frames 4 1 0 1 "${SIT_SIDE[@]}"
-    loop_frames 1 1 1 1 "${SIT_SIDE[@]}"
-    clear_frame
-    loop_frames 1 2 0 0 "${SCOOT_FRONT[@]}"
-    loop_frames 4 0.3 0 2 "${SCOOT_FRONT[@]}"
-    clear_frame
+    # duplicate sequences
+    for ((i = 0; i < REPEATS; i++)); do
+        random_index=$((RANDOM % ${#sequences[@]}))
+
+        # play sequence at the random index
+        ${sequences[random_index]}
+    done
 done
