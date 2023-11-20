@@ -34,6 +34,7 @@ function loop_frames() {
     local start_frame=$3
     local end_frame=$4
     local frames=("${@:$((5+start_frame)):$((5+end_frame))}")
+    
     local num_frames=$((end_frame-start_frame+1))
     local total_iterations=$((num_loops * num_frames))
 
@@ -97,6 +98,7 @@ sequence_4() {
   clear_frame
 }
 
+# TODO: params to adjust frequency of each sequence
 sequences=(
   sequence_1
   sequence_2
